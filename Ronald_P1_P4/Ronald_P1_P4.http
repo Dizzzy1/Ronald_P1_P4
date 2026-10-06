@@ -1,0 +1,6 @@
+@Ronald_P1_P4_HostAddress = http://localhost:5196
+
+GET {{Ronald_P1_P4_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
