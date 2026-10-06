@@ -6,8 +6,10 @@ namespace Ronald_P1_P4.Services;
 
 public class AutorService(IConfiguration configuration)
 {
-    private readonly string? _connectionString =
-        configuration.GetConnectionString("DefaultConnection");
+    private readonly string _connectionString =
+        configuration.GetConnectionString("DefaultConnection")
+        ?? throw new InvalidOperationException(
+            "No se encontró la cadena de conexión DefaultConnection.");
 
     private SqliteConnection CreateConnection()
     {
@@ -39,8 +41,10 @@ public class AutorService(IConfiguration configuration)
         using var connection = CreateConnection();
 
         const string sql = """
-            INSERT INTO Autores (Nombres, Nacionalidad, FechaNacimiento, Sueldo)
-            VALUES (@Nombre, @Nacionalidad, @FechaNacimiento, @Sueldo);
+            INSERT INTO Autores
+                (Nombres, Nacionalidad, FechaNacimiento, Sueldo)
+            VALUES
+                (@Nombres, @Nacionalidad, @FechaNacimiento, @Sueldo);
 
             SELECT last_insert_rowid();
             """;
@@ -54,11 +58,11 @@ public class AutorService(IConfiguration configuration)
 
         const string sql = """
             UPDATE Autores
-            SET Nombre = @Nombre,
+            SET Nombres = @Nombres,
                 Nacionalidad = @Nacionalidad,
                 FechaNacimiento = @FechaNacimiento,
-                Sueldo = @Suedo,
-            WHERE IdAutor = @Id;
+                Sueldo = @Sueldo
+            WHERE IdAutor = @AutorId;
             """;
 
         await connection.ExecuteAsync(sql, autor);
@@ -69,14 +73,19 @@ public class AutorService(IConfiguration configuration)
         using var connection = CreateConnection();
 
         const string sql = """
-            SELECT IdAutor, Nombre, Nacionalidad, FechaNacimiento, Sueldo
-            FROM Autor
-            WHERE Id = @Id;
+            SELECT
+                IdAutor AS AutorId,
+                Nombres,
+                Nacionalidad,
+                FechaNacimiento,
+                Sueldo
+            FROM Autores
+            WHERE IdAutor = @AutorId;
             """;
 
         return await connection.QueryFirstOrDefaultAsync<Autor>(
             sql,
-            new { Id = id });
+            new { AutorId = id });
     }
 
     public async Task<IEnumerable<Autor>> GetListAsync()
@@ -84,7 +93,12 @@ public class AutorService(IConfiguration configuration)
         using var connection = CreateConnection();
 
         const string sql = """
-            SELECT IdAutor, Nombre, Nacionalidad, FechaNacimiento, Sueldo
+            SELECT
+                IdAutor AS AutorId,
+                Nombres,
+                Nacionalidad,
+                FechaNacimiento,
+                Sueldo
             FROM Autores
             ORDER BY IdAutor;
             """;
@@ -98,11 +112,11 @@ public class AutorService(IConfiguration configuration)
 
         const string sql = """
             DELETE FROM Autores
-            WHERE IdAutor = @IdAutor;
+            WHERE IdAutor = @AutorId;
             """;
 
         await connection.ExecuteAsync(
             sql,
-            new { Id = id });
+            new { AutorId = id });
     }
 }
