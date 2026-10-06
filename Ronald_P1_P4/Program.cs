@@ -12,6 +12,7 @@ builder.Services.AddScoped<AutorService>();
 
 var app = builder.Build();
 
+// Inicializar servicios
 using (var scope = app.Services.CreateScope())
 {
     var numbersService = scope.ServiceProvider
@@ -23,12 +24,8 @@ using (var scope = app.Services.CreateScope())
     await numbersService.InitializeAsync();
     await autorService.InitializeAsync();
 }
-
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-    app.MapScalarApiReference();
-}
+app.MapOpenApi();
+app.MapScalarApiReference();
 
 app.UseHttpsRedirection();
 
