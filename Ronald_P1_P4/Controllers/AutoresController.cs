@@ -37,11 +37,11 @@ public class AutoresController(AutorService autoresService) : ControllerBase
     {
         var id = await autoresService.SaveAsync(autor);
 
-        autor.Id = id;
+        autor.AutorId = id;
 
         return CreatedAtAction(
             nameof(GetById),
-            new { id = autor.Id },
+            new { id = autor.AutorId },
             autor
         );
     }
@@ -61,7 +61,7 @@ public class AutoresController(AutorService autoresService) : ControllerBase
             });
         }
 
-        autor.Id = id;
+        autor.AutorId = id;
 
         await autoresService.UpdateAsync(autor);
 
