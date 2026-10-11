@@ -29,7 +29,7 @@ public class AutorService(IConfiguration configuration)
                 Nombres TEXT NOT NULL,
                 Nacionalidad TEXT NOT NULL,
                 FechaNacimiento DATE NOT NULL,
-                Sueldo INT NOT NULL
+                Sueldo NUMERIC NOT NULL
             );
             """;
 
@@ -93,17 +93,19 @@ public class AutorService(IConfiguration configuration)
         using var connection = CreateConnection();
 
         const string sql = """
-            SELECT
-                IdAutor AS AutorId,
-                Nombres,
-                Nacionalidad,
-                FechaNacimiento,
-                Sueldo
-            FROM Autores
-            ORDER BY IdAutor;
-            """;
+        SELECT
+            IdAutor AS IdAutor,
+            Nombres,
+            Nacionalidad,
+            FechaNacimiento,
+            CAST(Sueldo AS TEXT) AS Sueldo
+        FROM Autores
+        ORDER BY IdAutor;
+        """;
 
-        return await connection.QueryAsync<Autor>(sql);
+        var resultados = await connection.QueryAsync<Autor>(sql);
+
+        return resultados;
     }
 
     public async Task DeleteAsync(int id)
