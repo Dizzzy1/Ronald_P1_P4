@@ -37,7 +37,7 @@ public class AutoresController(AutorService autoresService) : ControllerBase
     {
         var id = await autoresService.SaveAsync(autor);
 
-        autor.IdAutor = id;
+        autor = autor with { IdAutor = id };
 
         return CreatedAtAction(
             nameof(GetById),
@@ -47,21 +47,14 @@ public class AutoresController(AutorService autoresService) : ControllerBase
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> Update(
-        int id,
-        [FromBody] Autor autor)
+    public async Task<IActionResult> Update(int id, [FromBody] Autor autor)
     {
         var existente = await autoresService.GetByIdAsync(id);
 
         if (existente == null)
-        {
-            return NotFound(new
-            {
-                mensaje = "Autor no encontrado"
-            });
-        }
+            return NotFound(new { mensaje = "Autor no encontrado" });
 
-        autor.IdAutor = id;
+        autor = autor with { IdAutor = id };
 
         await autoresService.UpdateAsync(autor);
 

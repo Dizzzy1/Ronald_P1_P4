@@ -51,21 +51,29 @@ public class AutorService(IConfiguration configuration)
 
         return await connection.ExecuteScalarAsync<int>(sql, autor);
     }
-
     public async Task UpdateAsync(Autor autor)
     {
         using var connection = CreateConnection();
 
         const string sql = """
-            UPDATE Autores
-            SET Nombres = @Nombres,
-                Nacionalidad = @Nacionalidad,
-                FechaNacimiento = @FechaNacimiento,
-                Sueldo = @Sueldo
-            WHERE IdAutor = @AutorId;
-            """;
+        UPDATE Autores
+        SET Nombres = @Nombres,
+            Nacionalidad = @Nacionalidad,
+            FechaNacimiento = @FechaNacimiento,
+            Sueldo = @Sueldo
+        WHERE IdAutor = @AutorId;
+        """;
 
-        await connection.ExecuteAsync(sql, autor);
+        var parametros = new
+        {
+            Nombres = autor.Nombres,
+            Nacionalidad = autor.Nacionalidad,
+            FechaNacimiento = autor.FechaNacimiento,
+            Sueldo = autor.Sueldo,
+            AutorId = autor.IdAutor
+        };
+
+        await connection.ExecuteAsync(sql, parametros);
     }
 
     public async Task<Autor?> GetByIdAsync(int id)
@@ -73,19 +81,31 @@ public class AutorService(IConfiguration configuration)
         using var connection = CreateConnection();
 
         const string sql = """
-            SELECT
-                IdAutor AS AutorId,
-                Nombres,
-                Nacionalidad,
-                FechaNacimiento,
-                Sueldo
-            FROM Autores
-            WHERE IdAutor = @AutorId;
-            """;
+        SELECT
+            IdAutor,
+            Nombres,
+            Nacionalidad,
+            FechaNacimiento,
+            Sueldo
+        FROM Autores
+        WHERE IdAutor = @Id;
+        """;
 
-        return await connection.QueryFirstOrDefaultAsync<Autor>(
+        var autor = await connection.QueryFirstOrDefaultAsync<dynamic>(
             sql,
-            new { AutorId = id });
+            new { Id = id });
+
+        if (autor == null)
+            return null;
+
+        return new Autor(
+            (int)autor.IdAutor,
+            (string)autor.Nombres,
+            (string)autor.Nacionalidad,
+            DateTime.Parse((string)autor.FechaNacimiento),
+            Convert.ToDecimal(autor.Sueldo,
+                System.Globalization.CultureInfo.InvariantCulture)
+        );
     }
 
     public async Task<IEnumerable<Autor>> GetListAsync()
@@ -94,18 +114,25 @@ public class AutorService(IConfiguration configuration)
 
         const string sql = """
         SELECT
-            IdAutor AS IdAutor,
+            IdAutor,
             Nombres,
             Nacionalidad,
             FechaNacimiento,
-            CAST(Sueldo AS TEXT) AS Sueldo
+            Sueldo
         FROM Autores
         ORDER BY IdAutor;
         """;
 
-        var resultados = await connection.QueryAsync<Autor>(sql);
+        var resultados = await connection.QueryAsync<dynamic>(sql);
 
-        return resultados;
+        return resultados.Select(autor => new Autor(
+            (int)autor.IdAutor,
+            (string)autor.Nombres,
+            (string)autor.Nacionalidad,
+            DateTime.Parse((string)autor.FechaNacimiento),
+            Convert.ToDecimal(autor.Sueldo,
+                System.Globalization.CultureInfo.InvariantCulture)
+        ));
     }
 
     public async Task DeleteAsync(int id)
